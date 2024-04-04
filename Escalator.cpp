@@ -1,23 +1,36 @@
 #include <iostream>
 #include <vector>
 #include <windows.h> // For Sleep function
-#include <conio.h> // For kbhit and getch functions
+#include <conio.h>   // For kbhit and getch functions
+#include <cstdlib>   // For rand and srand functions
+#include <ctime>     // For time function
+#include <limits>    // For numeric_limits
+#include <string>    // For std::to_string
 
 using namespace std;
 
-// Function to print the escalator
-void printEscalator(const vector<string>& escalator) {
-    for (const string& step : escalator) {
-        cout << step << endl;
-    }
-    cout << endl; // Add a newline after printing the escalator for spacing
-}
+// ANSI color codes
+const int ANSI_COLOR_RESET = 0;
+const int ANSI_COLOR_GREEN = 32;
+const int ANSI_COLOR_RED = 31;
+
+// Function prototypes
+vector<string> generateEscalator(int numSteps);
+void printEscalator(const vector<string>& escalator);
+void clearScreen();
+void displayMenu();
 
 int main() {
     char choice;
+    bool escalatorOn = false; // Flag to track the escalator state
+    const int maxSteps = 30;  // Maximum number of steps allowed
+
+    // Seed the random number generator
+    srand(time(nullptr));
 
     while (true) {
-        system("cls");
+        clearScreen(); // Clear the screen before displaying content
+
         cout << R"(
          .-"""-.
         /       \
@@ -30,68 +43,138 @@ int main() {
         `-.__.-'`"
     )" << endl;
 
-    // Menu
-    cout << "Main Menu:\n";
-    cout << "1. Start the Escalator Animation\n";
-    cout << "0. Turn off the Escalator\n\n";
-    cout << "Enter your choice: ";
+        displayMenu();
+        cout << "\n\033[1mEnter your choice:\033[0m ";
         cin >> choice;
+
+        // Clear input buffer
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
         switch (choice) {
             case '1': {
-                // Define the initial state of the escalator
-                vector<string> escalator = {
-                    "/____/",
-                    "/    /",
-                    "/    /",
-                    "/    /",
-                    "/    /",
-                    "/____/"
-                };
+                if (!escalatorOn) {
+                    cout << "\nPlease turn on the escalator first.\n";
+                    break;
+                }
 
-                // Flag to indicate whether the escalator is running
+                int numSteps;
+                cout << "\nEnter the number of steps (1-" << maxSteps << "): ";
+                cin >> numSteps;
+
+                if (numSteps <= 0 || numSteps > maxSteps) {
+                    cout << "\nInvalid number of steps. Please enter a number between 1 and " << maxSteps << ".\n";
+                    break;
+                }
+
+                vector<string> escalator = generateEscalator(numSteps);
+
                 bool isRunning = true;
 
                 while (isRunning) {
-                    // Clear the screen for a smoother animation effect (Windows)
-                    system("cls");
+                    clearScreen(); // Clear the screen before displaying content
 
-                    // Print the escalator
                     printEscalator(escalator);
 
-                    // Move the steps downwards
                     escalator.insert(escalator.begin(), escalator.back());
                     escalator.pop_back();
 
-                    // Sleep for a short duration to control the speed of the animation
-                    Sleep(1000); // 1000 milliseconds (1 second)
+                    // Adjust the animation speed based on the user's choice
+                    Sleep(1000); // Default speed: 1000 milliseconds (1 second)
 
-                    // Check if a key has been pressed
                     if (_kbhit()) {
-                        // Get the pressed key
                         char keyPressed = _getch();
-                        // Check if the pressed key is '0'
                         if (keyPressed == '0') {
-                            isRunning = false; // Stop the escalator animation
+                            isRunning = false;
+                        } else if (keyPressed == '2') {
+                            // Increase animation speed
+                            Sleep(500); // 500 milliseconds (0.5 second)
+                        } else if (keyPressed == '3') {
+                            // Decrease animation speed
+                            Sleep(1500); // 1500 milliseconds (1.5 seconds)
                         }
                     }
                 }
                 break;
             }
-            case '0':
-                cout << "\nTurning off the escalator.\n";
+            case '2':
+                cout << "\nIncreasing animation speed.\n";
                 break;
+            case '3':
+                cout << "\nDecreasing animation speed.\n";
+                break;
+            case '4':
+                escalatorOn = true;
+                cout << "\nEscalator turned ON.\n";
+                break;
+            case '5':
+                escalatorOn = false;
+                cout << "\nEscalator turned OFF.\n";
+                break;
+            case '0':
+                clearScreen();
+                // Display exit message with ASCII art
+                cout << R"(
+ ________________________________________ 
+/     .       | \  |                       \
+\    /_\   .  |  \ |\      Thank you for    |
+ |`\       /_\ |   \| \      using our      |
+ |           ------,     escalator simulator!|
+  |  _       ______/                       |
+  | (_      /   \  \                       |
+  |        /  ___\_ \                      |
+  |        \      / /                      |
+__|_________\______/_______________________|
+\______________\./__\                      |
+ /     .       | \  |                       |
+ \    /_\   .  |  \ |\                      |
+)" << "\nExiting the program. Goodbye!\n";
+                system("pause"); // Pause before exiting
+                return 0;
             default:
                 cout << "\nInvalid choice. Please try again.\n";
                 break;
         }
-
-        if (choice == '0') {
-            break; // Exit the program if the user chooses to turn off the escalator
-        }
     }
 
-    cout << "Exiting the program. Goodbye!\n";
-
     return 0;
+}
+
+vector<string> generateEscalator(int numSteps) {
+    vector<string> escalator;
+    for (int i = 0; i < numSteps; ++i) {
+        string step = "/";
+        for (int j = 1; j < numSteps - 1; ++j) {
+            if (i == 0 || i == numSteps - 1) {
+                step += "_";
+            } else {
+                int color = rand() % 7 + ANSI_COLOR_RED; // Random color between 31 and 37 (ANSI color codes)
+                step += "\033[" + to_string(color) + "m.\033[" + to_string(ANSI_COLOR_RESET) + "m"; // Colored dot for variety
+            }
+        }
+        step += "/";
+        escalator.push_back(step);
+    }
+    return escalator;
+}
+
+void printEscalator(const vector<string>& escalator) {
+    for (const string& step : escalator) {
+        cout << step << endl; // No need to add an extra newline after printing each step
+    }
+    cout << endl; // Add a newline after printing the escalator for spacing
+}
+
+void clearScreen() {
+    system("cls"); // For Windows
+    // system("clear"); // For Unix/Linux
+}
+
+void displayMenu() {
+    cout << "\n\033[1mMain Menu:\033[0m\n";
+    cout << "1. Start Escalator Animation\n";
+    cout << "2. Increase Animation Speed\n";
+    cout << "3. Decrease Animation Speed\n";
+    cout << "4. Turn On Escalator\n";
+    cout << "5. Turn Off Escalator\n";
+    cout << "\n\033[1mCredits:\033[0m Raven for the awesome escalator simulation!\n";
 }
