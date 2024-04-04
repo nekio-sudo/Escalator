@@ -18,12 +18,23 @@ int main() {
 
     while (true) {
         system("cls");
-        cout << "\n Welcome to the Escalator Simulator!\n\n";
-        cout << "\n Creds To Raven";
-        cout << "\n Main Menu:\n";
-        cout << "1. Start the Escalator Animation\n";
-        cout << "0. Turn off the Escalator\n\n";
-        cout << "Enter your choice: ";
+        cout << R"(
+         .-"""-.
+        /       \
+        \       /
+ .-"""-.-`.-.-.<  _
+/      _,-\ ()()_/:)
+\     / ,  `     `|
+ '-..-| \-.,___,  /
+       \ `-.__/  /
+        `-.__.-'`"
+    )" << endl;
+
+    // Menu
+    cout << "Main Menu:\n";
+    cout << "1. Start the Escalator Animation\n";
+    cout << "0. Turn off the Escalator\n\n";
+    cout << "Enter your choice: ";
         cin >> choice;
 
         switch (choice) {
